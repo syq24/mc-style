@@ -1,0 +1,46 @@
+# 运行命令：
+# cd /root/autodl-tmp/mc-style/model/DiffSynth-Studio && /root/miniconda3/envs/wan210/bin/accelerate launch /root/autodl-tmp/mc-style/train/train_with_yaml.py --config /root/autodl-tmp/mc-style/train/ymls/wan_t2v_train.yaml
+
+dataset_base_path: /root/autodl-tmp/mc-style/data/diffsynth_example_dataset/wanvideo/Wan2.1-T2V-1.3B
+dataset_metadata_path: /root/autodl-tmp/mc-style/data/diffsynth_example_dataset/wanvideo/Wan2.1-T2V-1.3B/metadata.csv
+dataset_repeat: 100
+data_file_keys: video
+height: 480
+width: 832
+max_pixels: 399360
+num_frames: 49
+
+model_id_with_origin_paths: Wan-AI/Wan2.1-T2V-1.3B:diffusion_pytorch_model*.safetensors,Wan-AI/Wan2.1-T2V-1.3B:models_t5_umt5-xxl-enc-bf16.pth,Wan-AI/Wan2.1-T2V-1.3B:Wan2.1_VAE.pth
+tokenizer_path: null
+audio_processor_path: null
+fp8_models: null
+offload_models: null
+
+task: sft
+learning_rate: 0.0001
+num_epochs: 5
+trainable_models: dit
+find_unused_parameters: false
+weight_decay: 0.01
+gradient_accumulation_steps: 1
+use_gradient_checkpointing: true
+use_gradient_checkpointing_offload: false
+initialize_model_on_cpu: false
+framewise_decoding: false
+max_timestep_boundary: 1.0
+min_timestep_boundary: 0.0
+
+lora_base_model: dit
+lora_target_modules: q,k,v,o,ffn.0,ffn.2
+lora_rank: 32
+lora_checkpoint: null
+preset_lora_path: null
+preset_lora_model: null
+
+output_path: /root/autodl-tmp/mc-style/outputs/train/Wan2.1-T2V-1.3B_lora
+remove_prefix_in_ckpt: pipe.dit.
+save_steps: null
+
+extra_inputs: null
+template_model_id_or_path: null
+enable_lora_hot_loading: false
