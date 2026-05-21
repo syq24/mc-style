@@ -1,3 +1,7 @@
 __pycache__/
 outputs/
 model/checkpoints/
+data/content_videos
+data/style_images
+data/.openvidhd_work
+data/OpenVidHD.csv

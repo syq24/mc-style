@@ -1,0 +1,8 @@
+timestamp,rank_index,part_name,expected_keep_videos,remote_files,status,kept_count,skipped_existing,missing_count,missing_preview,error
+2026-05-20T16:18:49,1,part1,1131,OpenVidHD_part_1.zip,completed,1131,0,0,,
+2026-05-20T17:10:30,2,part4,1125,OpenVidHD_part_4.zip,completed,1125,0,0,,
+2026-05-20T18:02:40,3,part2,1102,OpenVidHD_part_2.zip,completed,1102,0,0,,
+2026-05-20T18:59:25,4,part5,1101,OpenVidHD_part_5.zip,completed,1101,0,0,,
+2026-05-20T19:51:26,5,part3,1099,OpenVidHD_part_3.zip,completed,1099,0,0,,
+2026-05-20T20:43:35,6,part6,991,OpenVidHD_part_6.zip,completed,991,0,0,,
+2026-05-20T21:35:15,7,part7,923,OpenVidHD_part_7.zip,failed,0,0,0,,"HTTPSConnectionPool(host='cas-bridge.xethub.hf.co', port=443): Read timed out."

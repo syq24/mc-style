@@ -1,0 +1,27 @@
+Selected rank range: 11-20
+Selected logical parts: 10
+Endpoint: https://hf-mirror.com
+Split start: 15
+Split suffixes: aa,ab
+Run log dir: /root/autodl-tmp/mc-style/data/logs/download_run_20260520_161044
+================================================================================
+[1/10] part9 | keep 864 videos | remote files: OpenVidHD_part_9.zip
+================================================================================
+[2/10] part11 | keep 847 videos | remote files: OpenVidHD_part_11.zip
+================================================================================
+[3/10] part13 | keep 811 videos | remote files: OpenVidHD_part_13.zip
+================================================================================
+[4/10] part15 | keep 756 videos | remote files: OpenVidHD_part_15_part_aa, OpenVidHD_part_15_part_ab
+================================================================================
+[5/10] part14 | keep 728 videos | remote files: OpenVidHD_part_14.zip
+================================================================================
+[6/10] part17 | keep 703 videos | remote files: OpenVidHD_part_17_part_aa, OpenVidHD_part_17_part_ab
+================================================================================
+[7/10] part16 | keep 700 videos | remote files: OpenVidHD_part_16_part_aa, OpenVidHD_part_16_part_ab
+================================================================================
+[8/10] part19 | keep 666 videos | remote files: OpenVidHD_part_19_part_aa, OpenVidHD_part_19_part_ab
+================================================================================
+[9/10] part18 | keep 663 videos | remote files: OpenVidHD_part_18_part_aa, OpenVidHD_part_18_part_ab
+================================================================================
+[10/10] part20 | keep 629 videos | remote files: OpenVidHD_part_20_part_aa, OpenVidHD_part_20_part_ab
+All selected parts processed.

@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Block pushing Git objects larger than the limit.
+# GitHub hard limit is 100MB per file/blob, so we use 95MB as a safety margin.
+MAX_BYTES=$((95 * 1024 * 1024))
+
+zero_hash="0000000000000000000000000000000000000000"
+declare -a ranges=()
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [[ -z "${local_sha:-}" ]] && continue
+
+  # Deleting a ref on remote.
+  if [[ "$local_sha" == "$zero_hash" ]]; then
+    continue
+  fi
+
+  # New branch/tag push.
+  if [[ "$remote_sha" == "$zero_hash" ]]; then
+    ranges+=("$local_sha")
+  else
+    ranges+=("$remote_sha..$local_sha")
+  fi
+done
+
+# No refs to push.
+if [[ ${#ranges[@]} -eq 0 ]]; then
+  exit 0
+fi
+
+# Collect all objects included in push.
+obj_lines=$(git rev-list --objects --no-object-names "${ranges[@]}" | sort -u)
+[[ -z "$obj_lines" ]] && exit 0
+
+# Query object type and size; only blob objects matter.
+large_blobs=$(printf '%s\n' "$obj_lines" \
+  | git cat-file --batch-check='%(objectname) %(objecttype) %(objectsize)' \
+  | awk -v max="$MAX_BYTES" '$2=="blob" && $3>max {print $1" "$3}')
+
+[[ -z "$large_blobs" ]] && exit 0
+
+echo "ERROR: push blocked because oversized files were detected (>95MB)." >&2
+echo "Please remove them from commit history or use Git LFS." >&2
+echo >&2
+
+while read -r oid size; do
+  path=$(git rev-list --objects --all | awk -v h="$oid" '$1==h {print $2; exit}')
+  if [[ -z "${path:-}" ]]; then
+    path="(path not found in current refs)"
+  fi
+  mib=$(awk -v s="$size" 'BEGIN{printf "%.2f", s/1024/1024}')
+  echo "  - $path  (${mib} MiB)" >&2
+done <<< "$large_blobs"
+
+echo >&2
+echo "Fix current branch (example):" >&2
+echo "  git rm --cached <large-file>" >&2
+echo "  git commit --amend --no-edit" >&2
+echo "  git push" >&2
+
+exit 1

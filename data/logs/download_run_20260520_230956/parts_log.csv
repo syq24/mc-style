@@ -1,0 +1,5 @@
+timestamp,rank_index,part_name,expected_keep_videos,remote_files,status,kept_count,skipped_existing,missing_count,missing_preview,error
+2026-05-20T23:09:56,1,part7,923,OpenVidHD_part_7.zip,completed,923,0,0,,
+2026-05-21T00:07:28,2,part8,897,OpenVidHD_part_8.zip,completed,897,0,0,,
+2026-05-21T01:36:39,3,part10,879,OpenVidHD_part_10.zip,completed,879,0,0,,
+2026-05-21T02:33:41,4,part12,865,OpenVidHD_part_12.zip,completed,865,0,0,,
