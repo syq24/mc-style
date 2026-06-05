@@ -13,3 +13,15 @@ fps: 15
 device: cuda
 reserve_vram_gb: 2.0
 tiled: true
+
+# 风格控制（style-encoder + style-tokenizer）
+# style_guidance_mode: prompt | reference | hybrid
+enable_style_control: false
+style_guidance_mode: hybrid
+style_image: null
+style_prompt: ""
+style_preset: ""
+style_strength: 0.7
+# 可选：Wan 图像编码器权重，用于 reference_image 生成 clip_feature。
+# 示例：/root/autodl-tmp/mc-style/model/checkpoints/wan/Wan2.1-T2V-1.3B/models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth
+style_encoder_path: null

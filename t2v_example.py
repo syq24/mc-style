@@ -17,7 +17,7 @@ DEFAULT_NEGATIVE_PROMPT = "色调艳丽，过曝，静态，细节模糊不清�
 
 HEIGHT = 832
 WIDTH = 480
-NUM_FRAMES = 49
+NUM_FRAMES = 33
 
 
 def parse_args():

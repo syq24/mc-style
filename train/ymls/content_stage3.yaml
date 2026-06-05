@@ -1,0 +1,75 @@
+# Stage 3: reuse stage-2 style checkpoint, freeze the style branch, train only the Wan content backbone.
+# Run:
+# cd /root/autodl-tmp/mc-style/model/DiffSynth-Studio
+# /root/miniconda3/envs/wan210/bin/accelerate launch /root/autodl-tmp/mc-style/train/train_with_yaml.py --config /root/autodl-tmp/mc-style/train/ymls/content_stage3.yaml
+
+training_stage: wan_style
+
+# Dataset: same paired jsonl used in stage 2.
+dataset_base_path: /root/autodl-tmp/mc-style/data/datasets
+dataset_metadata_path: /root/autodl-tmp/mc-style/data/datasets/openvid_style30k.jsonl
+dataset_repeat: 100
+height: 480
+width: 832
+max_pixels: 399360
+num_frames: 49
+video_column: video_path
+image_column: image_path
+prompt_column: prompt
+style_label_column: null
+batch_size: 1
+contrastive_temperature: 0.07
+
+# Wan base models
+model_id_with_origin_paths: Wan-AI/Wan2.1-T2V-1.3B:diffusion_pytorch_model*.safetensors,Wan-AI/Wan2.1-T2V-1.3B:models_t5_umt5-xxl-enc-bf16.pth,Wan-AI/Wan2.1-T2V-1.3B:Wan2.1_VAE.pth
+model_paths: null
+tokenizer_path: null
+audio_processor_path: null
+fp8_models: null
+offload_models: null
+
+# Style paths
+style_repo_path: /root/autodl-tmp/mc-style/model/DiffSynth-Studio/diffsynth/style-tokenizer
+style_ckpt: /root/autodl-tmp/mc-style/outputs/train/style_encoder_stage1/epoch-19.safetensors
+style_fusion_ckpt: null
+# Use the stage-2 checkpoint here so style_tokenizer + style_proj are restored before stage 3 starts.
+style_train_ckpt: /root/autodl-tmp/mc-style/outputs/train/style_tokenizer_stage2/epoch-9.safetensors
+
+# Training
+task: sft
+learning_rate: 0.00002
+num_epochs: 10
+pipeline: wan_video_mc
+trainable_models: null
+find_unused_parameters: false
+weight_decay: 0.01
+gradient_accumulation_steps: 1
+use_gradient_checkpointing: true
+use_gradient_checkpointing_offload: false
+initialize_model_on_cpu: false
+framewise_decoding: false
+max_timestep_boundary: 1.0
+min_timestep_boundary: 0.0
+
+# Stage-3 freezing: style branch fixed, train content backbone only.
+freeze_style_encoder: true
+freeze_style_tokenizer: true
+freeze_style_proj: true
+freeze_text_encoder: true
+freeze_dit: false
+freeze_vae: true
+
+extra_inputs: reference_image
+
+lora_base_model: null
+lora_target_modules: q,k,v,o,ffn.0,ffn.2
+lora_rank: 32
+lora_checkpoint: null
+preset_lora_path: null
+preset_lora_model: null
+template_model_id_or_path: null
+enable_lora_hot_loading: false
+
+output_path: /root/autodl-tmp/mc-style/outputs/train/content_stage3
+remove_prefix_in_ckpt: pipe.
+save_steps: null

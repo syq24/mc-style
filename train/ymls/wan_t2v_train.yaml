@@ -1,28 +1,60 @@
-# 运行命令：
-# cd /root/autodl-tmp/mc-style/model/DiffSynth-Studio && /root/miniconda3/envs/wan210/bin/accelerate launch /root/autodl-tmp/mc-style/train/train_with_yaml.py --config /root/autodl-tmp/mc-style/train/ymls/wan_t2v_train.yaml
+# 主线轻量微调模板。当前版本用于在完整 OpenVid 配对集上做 Wan2.1-T2V-1.3B 的 DiT LoRA 适配，不再把 style branch/reference_image 串进主线训练。
+# 启动命令：
+# cd /root/autodl-tmp/mc-style/model/DiffSynth-Studio
+# /root/miniconda3/envs/wan210/bin/accelerate launch /root/autodl-tmp/mc-style/train/train_with_yaml.py --config /root/autodl-tmp/mc-style/train/ymls/wan_t2v_train.yaml
 
-dataset_base_path: /root/autodl-tmp/mc-style/data/diffsynth_example_dataset/wanvideo/Wan2.1-T2V-1.3B
-dataset_metadata_path: /root/autodl-tmp/mc-style/data/diffsynth_example_dataset/wanvideo/Wan2.1-T2V-1.3B/metadata.csv
-dataset_repeat: 100
-data_file_keys: video
+# 训练阶段：
+# - wan_style: 当前用于“冻结 style branch + 注入 DiT LoRA”的主线轻量微调
+# - style_encoder: 只训练 style_encoder，对 image_column 做对比学习
+training_stage: wan_style
+
+# 数据集
+# 当前使用完整 OpenVid 配对集 openvid_style30k.jsonl（27577 条）。
+dataset_base_path: /root/autodl-tmp/mc-style/data/datasets
+dataset_metadata_path: /root/autodl-tmp/mc-style/data/datasets/openvid_style30k.jsonl
+dataset_repeat: 1
 height: 480
 width: 832
 max_pixels: 399360
-num_frames: 49
+num_frames: 33
+video_column: video_path
+image_column: image_path
+prompt_column: prompt
+style_label_column: null
+batch_size: 1
+contrastive_temperature: 0.07
 
-model_id_with_origin_paths: Wan-AI/Wan2.1-T2V-1.3B:diffusion_pytorch_model*.safetensors,Wan-AI/Wan2.1-T2V-1.3B:models_t5_umt5-xxl-enc-bf16.pth,Wan-AI/Wan2.1-T2V-1.3B:Wan2.1_VAE.pth
-tokenizer_path: null
+# Wan 主模型加载
+model_id_with_origin_paths: null
+model_paths: '["/root/autodl-tmp/mc-style/model/checkpoints/wan/Wan2.1-T2V-1.3B/diffusion_pytorch_model.safetensors","/root/autodl-tmp/mc-style/model/checkpoints/wan/Wan2.1-T2V-1.3B/models_t5_umt5-xxl-enc-bf16.pth","/root/autodl-tmp/mc-style/model/checkpoints/wan/Wan2.1-T2V-1.3B/Wan2.1_VAE.pth"]'
+tokenizer_path: /root/autodl-tmp/mc-style/model/checkpoints/wan/Wan2.1-T2V-1.3B/google/umt5-xxl
 audio_processor_path: null
 fp8_models: null
 offload_models: null
 
+# StyleTokenizer / StyleEncoder 加载
+# 主线 LoRA 改为纯视频域适配，这里不再初始化 style branch。
+# style_repo_path: /root/autodl-tmp/mc-style/model/DiffSynth-Studio/diffsynth/style-tokenizer
+style_repo_path: null
+# style_ckpt: /root/autodl-tmp/mc-style/outputs/train/style_encoder_stage1/20260528-104740/step-210000.safetensors
+style_ckpt: null
+# style_fusion_ckpt: null
+style_fusion_ckpt: null
+# style_train_ckpt: /root/autodl-tmp/mc-style/outputs/train/style_tokenizer_stage2_instyle/20260528-215144/step-10000.safetensors
+style_train_ckpt: null
+# style_num_tokens: 8
+style_num_tokens: null
+
+# 训练设置
+# 这里只训 DiT LoRA，不全量更新主干。
 task: sft
-learning_rate: 0.0001
-num_epochs: 5
-trainable_models: dit
+learning_rate: 0.00010
+num_epochs: 3
+pipeline: wan_video_mc
+trainable_models: null
 find_unused_parameters: false
 weight_decay: 0.01
-gradient_accumulation_steps: 1
+gradient_accumulation_steps: 4
 use_gradient_checkpointing: true
 use_gradient_checkpointing_offload: false
 initialize_model_on_cpu: false
@@ -30,17 +62,35 @@ framewise_decoding: false
 max_timestep_boundary: 1.0
 min_timestep_boundary: 0.0
 
+# 冻结开关。style branch 已不参与主线 LoRA，这里保留冻结状态以兼容同一套训练入口。
+freeze_style_encoder: true
+freeze_style_tokenizer: true
+freeze_style_proj: true
+freeze_text_encoder: true
+freeze_dit: true
+freeze_vae: true
+
+# 输入项。主线 LoRA 改为纯文本/视频域适配，不再喂 reference_image。
+# extra_inputs: reference_image
+extra_inputs: null
+
+# LoRA / 模板
 lora_base_model: dit
 lora_target_modules: q,k,v,o,ffn.0,ffn.2
-lora_rank: 32
-lora_checkpoint: null
+lora_rank: 64
+lora_checkpoint: /root/autodl-tmp/mc-style/outputs/train/dit_lora/20260603-130209/step-10000.safetensors
+# lora_checkpoint: null
 preset_lora_path: null
 preset_lora_model: null
-
-output_path: /root/autodl-tmp/mc-style/outputs/train/Wan2.1-T2V-1.3B_lora
-remove_prefix_in_ckpt: pipe.dit.
-save_steps: null
-
-extra_inputs: null
 template_model_id_or_path: null
 enable_lora_hot_loading: false
+
+# 输出
+output_path: /root/autodl-tmp/mc-style/outputs/train/dit_lora
+remove_prefix_in_ckpt: pipe.dit.
+save_steps: 5000
+
+# 备注：
+# 1. 这份配置是“主线轻量微调”模板，不再用于 stage-2 style tokenizer 训练。
+# 2. 若后续要切回 stage-2，只需把 freeze_style_tokenizer / freeze_style_proj 改回 false，freeze_dit 置 true，lora_base_model 改回 null。
+

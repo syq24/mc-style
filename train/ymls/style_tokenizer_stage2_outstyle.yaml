@@ -1,0 +1,75 @@
+# Stage 2: Style30K out-style split.
+# Run:
+# cd /root/autodl-tmp/mc-style/model/DiffSynth-Studio
+# /root/miniconda3/envs/wan210/bin/accelerate launch /root/autodl-tmp/mc-style/train/train_with_yaml.py --config /root/autodl-tmp/mc-style/train/ymls/style_tokenizer_stage2_outstyle.yaml
+
+training_stage: wan_style
+
+# Dataset: train split only. Validation is run separately on the paired *_val.jsonl.
+dataset_base_path: /root/autodl-tmp/mc-style/data/datasets
+dataset_metadata_path: /root/autodl-tmp/mc-style/data/datasets/validation_splits/openvid_style30k_outstyle_train.jsonl
+dataset_repeat: 1
+height: 480
+width: 832
+max_pixels: 399360
+num_frames: 49
+video_column: video_path
+image_column: image_path
+prompt_column: prompt
+style_label_column: null
+batch_size: 1
+contrastive_temperature: 0.07
+
+# Wan base models
+model_id_with_origin_paths: null
+model_paths: '["/root/autodl-tmp/mc-style/model/checkpoints/wan/Wan2.1-T2V-1.3B/diffusion_pytorch_model.safetensors","/root/autodl-tmp/mc-style/model/checkpoints/wan/Wan2.1-T2V-1.3B/models_t5_umt5-xxl-enc-bf16.pth","/root/autodl-tmp/mc-style/model/checkpoints/wan/Wan2.1-T2V-1.3B/Wan2.1_VAE.pth"]'
+tokenizer_path: /root/autodl-tmp/mc-style/model/checkpoints/wan/Wan2.1-T2V-1.3B/google/umt5-xxl
+audio_processor_path: null
+fp8_models: null
+offload_models: null
+
+# Style paths
+style_repo_path: /root/autodl-tmp/mc-style/model/DiffSynth-Studio/diffsynth/style-tokenizer
+style_ckpt: /root/autodl-tmp/mc-style/outputs/train/style_encoder_stage1/20260528-104740/step-210000.safetensors
+style_fusion_ckpt: null
+style_train_ckpt: null
+
+# Training
+task: sft
+learning_rate: 0.0001
+num_epochs: 3
+pipeline: wan_video_mc
+style_num_tokens: 8
+trainable_models: null
+find_unused_parameters: false
+weight_decay: 0.01
+gradient_accumulation_steps: 4
+use_gradient_checkpointing: true
+use_gradient_checkpointing_offload: false
+initialize_model_on_cpu: false
+framewise_decoding: false
+max_timestep_boundary: 1.0
+min_timestep_boundary: 0.0
+
+# Stage-2 freezing: only tokenizer and projection head are trainable.
+freeze_style_encoder: true
+freeze_style_tokenizer: false
+freeze_style_proj: false
+freeze_text_encoder: true
+freeze_dit: true
+freeze_vae: true
+
+extra_inputs: reference_image
+
+lora_base_model: null
+lora_target_modules: q,k,v,o,ffn.0,ffn.2
+lora_rank: 32
+lora_checkpoint: null
+preset_lora_path: null
+preset_lora_model: null
+template_model_id_or_path: null
+enable_lora_hot_loading: false
+
+output_path: /root/autodl-tmp/mc-style/outputs/train/style_tokenizer_stage2_outstyle
+remove_prefix_in_ckpt: pipe.
+save_steps: 5000

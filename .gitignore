@@ -1,5 +1,6 @@
 __pycache__/
 outputs/
+data/
 model/checkpoints/
 data/content_videos
 data/style_images
